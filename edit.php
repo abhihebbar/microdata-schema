@@ -23,6 +23,12 @@ echo $form
 <div id="md-edit" style="display:none;">
 	<div class="ccm-ui">
 		<div class="clearfix" style="margin-bottom:18px;">
+			<label>Type (Cannot edit)</label>
+			<div class="input" style="margin-left:150px;">
+				<input type="text" name="md-type" value="" disabled id="md-type">
+			</div>
+		</div>
+		<div class="clearfix" style="margin-bottom:18px;">
 			<label>Property</label>
 			<div class="input" style="margin-left:150px;">
 				<select name="property" id="md-property">
@@ -37,8 +43,8 @@ echo $form
 			</div>
 		</div>
 		<div style="position:absolute;bottom:10px;right:10px;">
-			<a href="#" title="Cancel" class="btn">Cancel</a>
-			<a href="#" title="Save" class="btn primary">Save</a>&nbsp;&nbsp;
+			<a href="#" title="Cancel" class="btn cancel">Cancel</a>
+			<a href="#" title="Save" class="btn primary save">Save</a>&nbsp;&nbsp;
 		</div>
 	</div>
 	

@@ -18,6 +18,9 @@ function updateMD(){
 		selection = tinyMCE.activeEditor.selection,
 		node = $(selection.getNode());
 
+	if(node.closest('.md-item').length > 0)
+		type = node.closest('.md-item').attr('itemtype').replace(/http:\/\/schema\.org\//,'');
+
 	if(!node.hasClass('md-prop'))
 		node = node.closest('.md-prop');
 
@@ -27,23 +30,42 @@ function updateMD(){
 	}
 	var clone = $('#md-edit').clone().show(),
 		propSel = clone.find('#md-property'),
-		valIp = clone.find('#md-value');
+		valIp = clone.find('#md-value'),
+		typeIp = clone.find('#md-type');
 
+	typeIp.val(type);
 
 	propSel.empty().append('<option value="0">-- Select --</option>');
 
 	for(var i in mdSchema.types[type].properties)
 		propSel.append('<option>' + mdSchema.types[type].properties[i] + '</option>');
 
-	console.log(node[0]);
-
-	if(node.length > 0){
-		console.log(node.text());
+	if(node.length > 0 && ! node.hasClass('md-item')){
 		propSel.val(node.attr('itemprop'));
 		valIp.val(node.text());
 		selection.select(node[0]);
+	}else{
+		valIp.val(selection.getContent());
 	}
 
+	clone.find('.cancel').click(function(e){
+		e.preventDefault();
+		$(this).closest('.ui-dialog-content').dialog('close');
+	})
+
+	clone.find('.save').click(function(e){
+		e.preventDefault();
+		var prop = propSel.val(),
+			propVal = valIp.val();
+		var cont = $('<span>',{
+			'class':'md-prop',
+			'text' :propVal,
+			'title': type + ' > ' + prop,
+			'itemprop':prop
+		})
+		selection.setContent(cont[0].outerHTML);
+		$(this).closest('.ui-dialog-content').dialog('close');
+	})
 	$.fn.dialog.open({
 		element:clone,
 		title: 'Update Meta Data',
@@ -84,3 +106,8 @@ MicroDataSchema.format = function(doc,parentTypes){
 	});
 }
 
+$('select#type').change(function(){
+	if($(this).val() != 0){
+		tinyMCE.activeEditor.setContent('<section class="md-item" itemscope itemtype="'+$(this).val()+'"><p>Enter contents for '+$(this).val()+'</p></section>')
+	}
+})
