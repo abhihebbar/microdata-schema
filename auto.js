@@ -15,8 +15,9 @@ MicroDataSchema = function(node){
 
 function updateMD(){
 	var type = $('select#type').val(),
-		selection = tinyMCE.activeEditor.selection,
-		node = $(selection.getNode());
+		tmSel = tinyMCE.activeEditor.selection,
+		node = $(tmSel.getNode());
+
 
 	if(node.closest('.md-item').length > 0)
 		type = node.closest('.md-item').attr('itemtype').replace(/http:\/\/schema\.org\//,'');
@@ -43,34 +44,49 @@ function updateMD(){
 	if(node.length > 0 && ! node.hasClass('md-item')){
 		propSel.val(node.attr('itemprop'));
 		valIp.val(node.text());
-		selection.select(node[0]);
+		tmSel.select(node[0]);
 	}else{
-		valIp.val(selection.getContent());
+		valIp.val($("<span>"+tmSel.getContent()+"</span>").text());
 	}
-
+	var bm = tmSel.getBookmark();
 	clone.find('.cancel').click(function(e){
-		e.preventDefault();
 		$(this).closest('.ui-dialog-content').dialog('close');
+		return false;
 	})
 
 	clone.find('.save').click(function(e){
-		e.preventDefault();
 		var prop = propSel.val(),
 			propVal = valIp.val();
 		var cont = $('<span>',{
-			'class':'md-prop',
 			'text' :propVal,
-			'title': type + ' > ' + prop,
 			'itemprop':prop
 		})
-		selection.setContent(cont[0].outerHTML);
+		if(mdSchema.properties[prop]){
+			var propDesc = mdSchema.properties[prop];
+			if(propDesc.domains.indexOf(type) >= 0){
+				cont = $('<section>',{
+					'itemscope': true,
+					'itemtype' : propDesc.ranges[0],
+					'itemprop' : prop,
+					'text':propVal
+				});
+			}
+		}
+
+		tinyMCE.activeEditor.focus();
+		tinyMCE.activeEditor.selection.moveToBookmark(bm);
+		tinyMCE.activeEditor.selection.setContent(cont[0].outerHTML);
+		MicroDataSchema.format(tinyMCE.activeEditor.getDoc().body);
 		$(this).closest('.ui-dialog-content').dialog('close');
-	})
+		return false;
+	});
+
 	$.fn.dialog.open({
 		element:clone,
 		title: 'Update Meta Data',
 		width: 400,
-		height: 150
+		height: 150,
+		modal: false
 	})
 }
 
@@ -108,6 +124,6 @@ MicroDataSchema.format = function(doc,parentTypes){
 
 $('select#type').change(function(){
 	if($(this).val() != 0){
-		tinyMCE.activeEditor.setContent('<section class="md-item" itemscope itemtype="'+$(this).val()+'"><p>Enter contents for '+$(this).val()+'</p></section>')
+		tinyMCE.activeEditor.setContent('<section class="md-item" itemscope itemtype="'+$(this).val()+'">Enter contents for '+$(this).val()+'</section>')
 	}
 })
